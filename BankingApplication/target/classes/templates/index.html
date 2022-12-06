@@ -1,0 +1,227 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+ xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!-- Font Awesome -->
+<!--<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<!-- Google Fonts -->
+<!--<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+<!-- MDB -->
+<!--<link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.css" rel="stylesheet"/>-->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<!--<script
+  type="text/javascript"
+  src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.js"
+></script>-->
+<style>
+.bold
+{
+font-weight:bold;
+color:red;
+}
+.displayNone
+{
+display:none;
+}
+.salutaiton-div
+{
+    padding-left: 40px;
+    font-size: 20px;
+    color: red;
+    font-weight: bold;
+    padding-bottom: 20px;
+ }
+ #err-msg-parent
+ {
+ 	color: red;
+    padding-top: 70px;
+    padding-left: 25px;
+ }
+ body
+ {
+ overflow:scroll;
+ }
+ 
+
+</style>
+  <head>
+    <title>Assignment Statement Enquiry</title>
+  </head>
+  <body onload="getUserId()">
+  
+  <div class="row">
+  	<div class="col-md-11 col-sm-11 col-lg-11">
+  		<h1 class="p-2 d-flex justify-content-center">  Statement Enquiry</h1>
+  	</div>
+  	<div class="col-md-1 col-sm-1 col-lg-1">
+  		
+  		<form th:action="@{/doLogout}" method="post">
+    <input class="m-4" type="submit" value="Logout" />
+</form>
+  	</div>
+  </div>
+  	<div class="salutaiton-div row">Welcome <span id="user-login-name" class="bold"></span> </div>
+  
+    <form>
+  <div class="form-row p-4">
+  <div class="form-group col-md-12">
+      <label for="accountId">Account ID</label>
+      <input type="text" class="form-control" id="accountId" placeholder="Numeric Only...">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="fromDate">From</label>
+      <input type="text" class="form-control" id="fromDate" placeholder="dd.mm.yyyy">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="toDate">To</label>
+      <input type="text" class="form-control" id="toDate" placeholder="dd.mm.yyyy">
+    </div>
+<div class="form-group col-md-6">
+      <label for="fromPrice">From</label>
+      <input type="text" class="form-control" id="fromPrice" placeholder="0.00">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="toPrice">To</label>
+      <input type="text" class="form-control" id="toPrice" placeholder="0.00">
+    </div>
+
+  </div>
+  </form>
+  <div form-row pt-4>
+<div class="form-group col-md-6"></div>
+<div class="form-group col-md-6 float-right">
+<button id="getStmtBtn" class="btn btn-outline-primary" type="button">Get Statement</button>
+</div>
+  </div>
+  
+  <div id="err-msg-parent" class="displayNone">
+  	<h5>Error Message</h5>
+  	<div id="errorMsgDiv" class="">
+  </div>
+  </div>
+  <div class="displayNone" id="statementParentBlock">
+  <div id="statementRes" class="mt-5 p-4">
+  Account Statement for Account Number: <span class="bold" id="acc-num-span"> </span> of Account Type: <span class="bold" id="acc-type-span"></span>
+  </div>  
+  <div class="p-4" id="stmtResTable">
+  <table class="table p-4">
+  <thead>
+    <tr>
+	  <th scope="col">Serial Number</th>
+      <th scope="col">Transaction Date</th>
+      <th scope="col">Amount</th>
+    </tr>
+  </thead>
+  <tbody id="stmtResTbody">
+   
+  </tbody>
+</table>
+</div>
+</div>
+ 
+ 
+  </body>
+  <script>
+  
+  function getUserId()
+  {
+	 	var myHeaders = new Headers();
+		myHeaders.append("Content-Type", "application/json");
+		var requestOptions = {
+		  method: 'GET',
+		  headers: myHeaders,
+		  redirect: 'follow'
+		};
+	  
+	   fetch("http://localhost:8080/userlogin", requestOptions)
+	  .then(response => response.text())
+	  .then(result => {
+		  
+		  $("#user-login-name").text(". "+JSON.parse(result).message);
+		  
+		  })
+	  .catch(error => {
+			console.log('error', error);		  
+	  }); 
+  }
+  
+  
+  
+  $("#getStmtBtn").on("click",function(){
+	 let id = $("#accountId").val();
+	 let fromDate = $("#fromDate").val();
+	 let toDate = $("#toDate").val();
+	 let fromAmount = $("#fromPrice").val();
+	 let toAmount = $("#toPrice").val();
+	 let accNumber = "";
+	 let accType = "";
+	 let recordLength = "";
+	 let recordData = "";
+	 let tempHTML = "";
+	 var raw = JSON.stringify({
+		  "id": id,
+		  "fromDate": fromDate,
+		  "toDate": toDate,
+		  "fromAmount":fromAmount,
+		  "toAmount":toAmount
+		});
+		
+	var myHeaders = new Headers();
+	myHeaders.append("Content-Type", "application/json");
+	var requestOptions = {
+	  method: 'POST',
+	  headers: myHeaders,
+	  body: raw,
+	  redirect: 'follow'
+	};
+
+fetch("http://localhost:8080/getAccStatement", requestOptions)
+  .then(response => response.text())
+  .then(result => {
+	  recordData = JSON.parse(result);
+	  
+	  if(recordData.statement)
+	{
+	  recordLength = recordData.statement.length;
+	  accNumber = recordData.account.accountNumber;
+	  accType = recordData.account.accountType;
+	  for(var i=1; i<=recordLength; i++)
+	  {
+		  	tempHTML += '<tr>'
+			tempHTML +=	'<th scope="row">'+i+'</th>'
+			tempHTML += '<td>'+recordData.statement[i-1].datefield+'</td>'
+			tempHTML += '<td>'+recordData.statement[i-1].amount+'</td>'
+			tempHTML += '</tr>'
+
+	  }
+	  $("#statementParentBlock").show();
+	  $("#err-msg-parent").addClass("displayNone")
+	  $("#stmtResTbody").empty().append(tempHTML);
+	  $("#acc-num-span").text(accNumber);
+	  $("#acc-type-span").text(accType);
+	  $(".statementParentBlock").toggleClass("displayNone")
+	  
+	}
+  else
+	 {
+	  $("#statementParentBlock").hide();
+	  $("#err-msg-parent").removeClass("displayNone")
+	  $("#errorMsgDiv").empty().append(recordData.message);
+	 }
+	  
+	  })
+  .catch(error => {
+	
+	  $("#statementParentBlock").hide();
+	  $("#err-msg-parent").removeClass("displayNone")
+	  $("#errorMsgDiv").empty().append(error);
+	 console.log('error', error)
+	  
+  });
+  
+  
+  })
+  </script>
+</html>
